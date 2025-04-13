@@ -1,0 +1,213 @@
+import java.time.LocalTime;
+import java.util.*;
+import java.util.Queue;
+import java.util.LinkedList;
+
+
+class Voto{
+    private int id;
+    private int votanteID;
+    private int candidatoID;
+    private String timestamp;
+
+    public Voto(){
+        this.id=0;
+        this.votanteID=0;
+        this.candidatoID=0;
+        this.timestamp="";
+    }
+
+    public Voto(int Rid, int RvotanteID, int RcandidatoID, String Rtimestamp){
+        this.id = Rid;
+        this.votanteID = RvotanteID;
+        this.candidatoID = RcandidatoID;
+        this.timestamp = Rtimestamp;
+    }
+
+    //getters y setters
+
+    int getid(){return id;}
+    int getvotanteID(){return votanteID;}
+    int getcandidatoID(){return candidatoID;}
+    String gettimestamp(){return timestamp;}
+
+    void set_id(int nuevo){
+        this.id=nuevo;
+    }
+    void set_votanteID(int nuevo){
+        this.votanteID=nuevo;
+    }
+    void set_candidatoID(int nuevo){
+        this.candidatoID=nuevo;
+    }
+    void set_timestamp(String nuevo){
+        this.timestamp=nuevo;
+    }
+}
+
+class Candidato{
+    private int id;
+    private String nombre;
+    private String partido;
+    private Queue<Voto> votos;//first in first out (cola)
+
+    public Candidato(){
+        this.id = 0;
+        this.nombre = "";
+        this.partido = "";
+        this.votos = new ArrayDeque<>();
+    }
+
+    public Candidato(int Rid, String Rnombre, String Rpartido, Voto Rvotos){
+        this.id = Rid;
+        this.nombre = Rnombre;
+        this.partido = Rpartido;
+        this.votos.offer(Rvotos);
+    }
+
+    int getid(){return id;}
+    String getnombre(){return this.nombre;}
+    String getpartido(){return this.partido;}
+    Queue<Voto> getvotos(){return this.votos;}
+
+    void set_id(int nuevo){
+        this.id=nuevo;
+    }
+    void set_nombre(String nuevo){
+        this.nombre=nuevo;
+    }
+    void set_partido(String nuevo){
+        this.partido=nuevo;
+    }
+    void set_votos(Voto nuevo){
+        this.votos.offer(nuevo);
+    }
+
+        public void agregarVotoenCola(Voto v){
+        if(v.getcandidatoID()==id){
+            votos.offer(v);//se ingreso en la cola;
+            System.out.println("voto ingresado correctamente.");
+        }else {
+            System.out.println("id invalido, no existe candidato con Id ingresada.");
+        }
+    }
+}
+
+class Votante{
+    private int id;
+    private String nombre;
+    private boolean yaVoto;
+
+    public Votante(int Rid, String Rnombre,  boolean RyaVoto){
+        this.id = Rid;
+        this.nombre = Rnombre;
+        this.yaVoto = RyaVoto;
+    }
+
+    public  Votante(){
+        this.id = 0;
+        this.nombre = "";
+        this.yaVoto = false;
+    }
+
+    //getters y setters
+
+    int getIdV(){return id;}
+    String getNombreV(){return nombre;}
+    boolean getYaVoto(){return yaVoto;}
+
+    void setIdV(int newid){
+        this.id = newid;
+    }
+    void setNombreV(String newnombre){
+        this.nombre = newnombre;
+    }
+    void setYaVoto(boolean newyaVoto){
+        this.yaVoto = newyaVoto;
+    }
+
+    void marcarComoVotado(){
+        this.yaVoto = true;
+    }
+}
+
+class UrnaElectoral{
+    private LinkedList<Candidato> listaCandidatos = new LinkedList<Candidato>();
+    private Stack<Voto> historialVotos = new Stack<>();
+    private Queue<Voto> votosReportados = new LinkedList<Voto>();
+    private int idCounter;
+    private Scanner sc = new Scanner(System.in);
+
+    public UrnaElectoral(){
+        this.idCounter = 0;
+    }
+
+    public boolean verificarVotante(Votante votante){
+            return votante.getYaVoto();
+    }
+    //Big(n)
+    boolean registrarVoto(Votante votante2, int idCandidato2){
+        if(!verificarVotante(votante2)){
+            Voto newvoto = new Voto(
+                    idCounter++,
+                    votante2.getIdV(),
+                    idCandidato2,
+                    LocalTime.now().toString()
+            );
+
+            for(Candidato candidato : listaCandidatos){
+                if(candidato.getid()==idCandidato2){
+                    candidato.agregarVotoenCola(newvoto);
+                    historialVotos.push(newvoto);
+                    votante2.marcarComoVotado();
+                    //votosReportados.offer(newvoto);//agregar voto al candidato en la cola de esta clase.
+                    return true;
+                }
+            }
+            return false;//si el candidato no existe
+        }
+        return false;//si ya voto
+    }
+    //Big (n)
+    boolean reportarVoto(Candidato candidato, int idVoto){
+        Queue<Voto> aux = candidato.getvotos();
+        Voto votoFinal = null;
+        for(Voto temp : aux){//n
+            if(temp.getid()==idVoto){
+                votoFinal = temp;
+                break;
+            }
+        }
+        if(votoFinal==null){//1
+            System.out.println("voto con  el id de candidato ingresado no encontrado.");
+            return false;
+        }
+         //verificar si hay fraude
+        for(Voto temp : votosReportados){//n
+            if(temp.getid()==idVoto){
+                System.out.println("existe fraude, ya se ha votado con los datos de la persona FRAUDE.");
+                return false;
+            }
+        }
+        //remover voto del candidato.
+        aux.remove(votoFinal);
+        votosReportados.offer(votoFinal);
+        return true;
+    }
+    //Big (n)
+    String obtenerResultados(){
+        String totalV = "";
+        for(Candidato ca : listaCandidatos){
+            totalV+= ca.getnombre() +" | " + ca.getvotos().size() + "votos.";
+        }
+        return totalV;
+    }
+}
+
+public static void main(String[] args){
+    Scanner sc = new Scanner(System.in);
+    System.out.println("Sistema de votación.\n ¿Desea votar? \nSi: 1  \nNo: 2\n");
+    int opcion = sc.nextInt();
+
+
+}

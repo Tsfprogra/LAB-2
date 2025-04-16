@@ -58,11 +58,11 @@ class Candidato{
         this.votos = new ArrayDeque<>();
     }
 
-    public Candidato(int Rid, String Rnombre, String Rpartido, Voto Rvotos){
+    public Candidato(int Rid, String Rnombre, String Rpartido){
         this.id = Rid;
         this.nombre = Rnombre;
         this.partido = Rpartido;
-        this.votos.offer(Rvotos);
+        this.votos = new ArrayDeque<>();
     }
 
     int getid(){return id;}
@@ -129,6 +129,7 @@ class Votante{
     void marcarComoVotado(){
         this.yaVoto = true;
     }
+
 }
 
 class UrnaElectoral{
@@ -202,12 +203,146 @@ class UrnaElectoral{
         }
         return totalV;
     }
+    public void agregarCandidatoU(Candidato c){
+        listaCandidatos.add(c);
+    }
+    public List<Candidato> getListaCandidatos(){
+        return new LinkedList<>(listaCandidatos);
+    }
+
 }
+class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        UrnaElectoral urna = new UrnaElectoral();
+        List<Votante> listaVotantes = new ArrayList<>();
+        System.out.println("=================================");
+        System.out.println("¿Cuantos candidatos participaran?");
+        System.out.println("=================================");
+        int candidatos = sc.nextInt();
+        sc.nextLine();
+        //ciclo que agrega candidatos.
+        for (int i = 0; i < candidatos; i++) {
+            System.out.println("Candidato " + (i + 1) + ":");
+            System.out.println("=================================");
+            System.out.println("id: ");
+            int id = sc.nextInt();
+            sc.nextLine();
+            System.out.println("=================================");
+            System.out.print("Nombre: ");
+            String nombre = sc.nextLine();
+            System.out.println("=================================");
+            System.out.print("Partido: ");
+            String partido = sc.nextLine();
+            System.out.println("=================================");
+            Candidato cand = new Candidato(id, nombre, partido);
+            urna.agregarCandidatoU(cand);
+        }
+        System.out.println("=================================");
+        System.out.println("Registro Votantes.");
+        System.out.println("=================================");
+        System.out.println("Ingresa cantidad de votantes:");
+        int votantes = sc.nextInt();
+        System.out.println("=================================");
 
-public static void main(String[] args){
-    Scanner sc = new Scanner(System.in);
-    System.out.println("Sistema de votación.\n ¿Desea votar? \nSi: 1  \nNo: 2\n");
-    int opcion = sc.nextInt();
+        for (int i = 0; i < votantes; i++) {
+            Votante v = new Votante();
+
+            System.out.print("ingrese id:");
+            int id = sc.nextInt();
+            sc.nextLine();
+            System.out.println("=================================");
+            System.out.print("ingrese nombre:");
+            String nombre = sc.nextLine();
+            System.out.println("=================================");
+            v.setYaVoto(false);//se inicializan todos en false.
+            v.setIdV((id));
+            v.setNombreV(nombre);
+            listaVotantes.add(v);
+
+        }
 
 
+        //Menu
+        int op;
+        do {
+            System.out.println("-------------------------------------");
+            System.out.println("-------Sistema de votación UDP-------");
+            System.out.println("-------------------------------------");
+            System.out.println("1. Registrar voto.");
+            System.out.println("2. Reportar voto.");
+            System.out.println("3. Mostrar resultados.");
+            System.out.println("4. Salir.");
+            System.out.println("-------------------------------------");
+            op = sc.nextInt();
+
+            switch (op) {
+
+                case 1:
+                    System.out.println("-------Registrar voto-------");
+                    System.out.println("=================================");
+                    System.out.print("ingrese id votante:");
+                    int idV = sc.nextInt();
+                    System.out.println("=================================");
+                    boolean e = false;
+                    for (Votante v : listaVotantes) {
+                        if (v.getIdV() == idV) {
+                            if (v.getYaVoto() == true) {
+                                System.out.println("ya voto (fraude).");
+                            } else {
+                                System.out.println("Lista candidatos");
+                                for (Candidato can : urna.getListaCandidatos()) {
+                                    System.out.println("=================================");
+                                    System.out.println("ID:" + can.getid() + "\nNombre: " + can.getnombre() + "\nPartido: " + can.getpartido());
+                                    System.out.println("=================================");
+                                }
+                                System.out.print("ingrese id del candidato:");
+                                int idC = sc.nextInt();
+
+                                if (urna.registrarVoto(v, idC)) {
+                                    System.out.println(" ");
+                                } else {
+                                    System.out.println("-------Error-------");
+                                }
+                            }
+                            e = true;
+                            break;
+                        }
+                    }
+                    if (!e) {
+                        System.out.println("-------Error (Id invalida)-------");
+                    }
+                    break;
+
+                case 2:
+                    System.out.println("Reportar voto.");
+                    System.out.println("Ingrese id candidato:");
+                    int idC = sc.nextInt();
+                    System.out.println("Ingrese id de voto a reportar:");
+                    int idVoto = sc.nextInt();
+
+                    for (Candidato c : urna.getListaCandidatos()) {
+                        if (c.getid() == idC) {
+                            if (urna.reportarVoto(c, idVoto)) {
+                                System.out.println("-------Voto reportado exitosamente.-------");
+                            }
+                            break;
+                        }
+                    }
+                    break;
+
+                case 3:
+                    System.out.println("-------Resultados-------");
+                    for (Candidato c : urna.getListaCandidatos()) {
+                        System.out.println(c.getnombre() + ":" + c.getvotos().size());
+                    }
+                    break;
+                case 4:
+                    System.out.println("Saliendo...");
+                    break;
+                default:
+                    System.out.println("-------Opción invalida-------");
+            }
+        } while (op != 4);
+    }
 }

@@ -201,12 +201,12 @@ class UrnaElectoral{
     //Big (n)
 
 
-    String obtenerResultados(){
-        String totalV = "";
+    public Map<String, Integer> obtenerResultados(){
+        Map<String,Integer> resultados = new HashMap<>();
         for(Candidato ca : listaCandidatos){
-            totalV+= ca.getnombre() +" | " + ca.getvotos().size() + "votos.";
+            resultados.put(ca.getnombre(),ca.getvotos().size());
         }
-        return totalV;
+        return resultados;
     }
     public void agregarCandidatoU(Candidato c){
 
@@ -254,6 +254,7 @@ class Electo {
             Votante v = new Votante();
             System.out.println("Ingresa Run(ID) sin puntos y el -");
             int idv = sc.nextInt();
+            sc.nextLine();
             System.out.print("ingrese nombre:");
             String nombre = sc.nextLine();
             System.out.println("=================================");
@@ -336,8 +337,9 @@ class Electo {
 
                 case 3:
                     System.out.println("-------Resultados-------");
-                    for (Candidato c : urna.getListaCandidatos()) {
-                        System.out.println(c.getnombre() + ":" + c.getvotos().size());
+                    Map<String, Integer> resultados = urna.obtenerResultados();
+                    for (Map.Entry<String, Integer> c : resultados.entrySet()) {
+                        System.out.println("Candidato:"+c.getKey() + " | Votos:" + c.getValue());
                     }
                     break;
                 case 4:
